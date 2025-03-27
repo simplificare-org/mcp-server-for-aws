@@ -1,6 +1,6 @@
 # MCP Server for AWS Resources
 
-This repository contains the implementation of the MCP (Multi-Cloud Platform) server for managing AWS resources. It provides a Python-based server to interact with AWS services using the `boto3` library.
+This repository contains the implementation of the MCP (Model Context Protocol) server for managing AWS resources. It provides a Python-based server to interact with AWS services using the `boto3` library.
 
 ## Features
 
