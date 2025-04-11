@@ -4,12 +4,12 @@ import logging
 from . import server
 
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger('mcp_hubspot')
+logger = logging.getLogger('mcp_policloud_agent_aws')
 
 def main():
-    logger.debug("Starting mcp-server-hubspot main()")
-    parser = argparse.ArgumentParser(description='HubSpot MCP Server')
-    parser.add_argument('--access-token', help='HubSpot access token')
+    logger.debug("Starting mcp-server main()")
+    parser = argparse.ArgumentParser(description='MCP Server AWS')
+    parser.add_argument('--access-token', help='AWS access token')
     args = parser.parse_args()
     
     logger.debug(f"Access token from args: {args.access_token}")
