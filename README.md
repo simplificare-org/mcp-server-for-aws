@@ -13,7 +13,7 @@ This repository contains the implementation of the MCP (Model Context Protocol) 
 
 - Python 3.10 or higher
 - AWS credentials configured in your environment (e.g., via `~/.aws/credentials` or environment variables)
-- Docker (optional, for containerized deployment)
+- Docker 
 
 ## Installation
 
