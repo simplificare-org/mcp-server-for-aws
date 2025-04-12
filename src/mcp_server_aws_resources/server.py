@@ -100,7 +100,7 @@ class AWSResourceQuerier:
             executor.visit(tree)
 
             # Validate imports
-            allowed_modules = {'boto3', 'operator', 'json', 'datetime', 'pytz', 'dateutil', 're', 'time'}
+            allowed_modules = {'boto3', 'operator', 'json', 'datetime', 'pytz', 'dateutil', 're', 'time', 'sys', 'base64'}
             unauthorized_imports = executor.imported_modules - allowed_modules
             if unauthorized_imports:
                 return json.dumps({
