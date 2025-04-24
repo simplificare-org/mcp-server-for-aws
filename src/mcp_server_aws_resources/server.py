@@ -177,7 +177,7 @@ async def main():
         path = str(uri).replace("aws://", "")
         if path == "query_resources":
             # Return empty result as this endpoint requires a specific query
-            return json.dumps({"message": "Please use the query_aws_resources tool to execute specific queries"})
+            return json.dumps({"message": "Please use the read_create_update_aws_resources tool to execute specific queries"})
         else:
             raise ValueError(f"Unknown resource path: {path}")
 
@@ -186,7 +186,7 @@ async def main():
         """List available tools"""
         return [
             types.Tool(
-                name="query_aws_resources",
+                name="read_create_update_aws_resources",
                 description="Execute a boto3 code snippet to query AWS resources",
                 inputSchema={
                     "type": "object",
@@ -207,7 +207,7 @@ async def main():
     ) -> list[types.TextContent | types.ImageContent | types.EmbeddedResource]:
         """Handle tool execution requests"""
         try:
-            if name == "query_aws_resources":
+            if name == "read_create_update_aws_resources":
                 if not arguments or "code_snippet" not in arguments:
                     raise ValueError("Missing code_snippet argument")
 
