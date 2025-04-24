@@ -1,0 +1,6 @@
+commands
+
+docker build -t mcp-server-aws-resources:latest .
+
+docker run -i, --rm, -e AWS_PROFILE=default -v /Users/name/.aws:/root/.aws mcp-server-aws-resources:latest
+
