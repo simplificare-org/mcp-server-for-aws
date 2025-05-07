@@ -58,11 +58,3 @@ To integrate this server with your system, add the following configuration to yo
 }
 ```
 
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- [boto3](https://github.com/boto/boto3) for AWS SDK integration.
-- [Pydantic](https://github.com/pydantic/pydantic) for data validation.

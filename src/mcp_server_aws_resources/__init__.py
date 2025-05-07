@@ -4,7 +4,7 @@ import logging
 from . import server
 
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger('mcp_policloud_agent_aws')
+logger = logging.getLogger('mcp_syntropAI_agent_aws')
 
 def main():
     logger.debug("Starting mcp-server main()")
