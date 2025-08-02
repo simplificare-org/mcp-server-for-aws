@@ -11,7 +11,8 @@ dependencies = [
     "boto3",
     "mcp",
     "pydantic",
-    "pytz"
+    "pytz",
+     "syntropaibox"
 ]
 
 [tool.hatch.build.targets.wheel]

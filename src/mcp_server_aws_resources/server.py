@@ -11,6 +11,9 @@ import mcp.server.stdio
 from pydantic import AnyUrl
 import ast
 from operator import itemgetter
+from syntropaibox.mcp.sandbox import CodeExecutor,create_safe_builtins
+from syntropaibox.mcp.base import BaseQuerier
+
 
 logger = logging.getLogger('mcp_aws_resources_server')
 
@@ -40,32 +43,32 @@ def parse_arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
-class CodeExecutor(ast.NodeTransformer):
-    """Custom AST NodeTransformer to validate and transform the code"""
+# class CodeExecutor(ast.NodeTransformer):
+#     """Custom AST NodeTransformer to validate and transform the code"""
 
-    def __init__(self):
-        self.has_result = False
-        self.imported_modules = set()
+#     def __init__(self):
+#         self.has_result = False
+#         self.imported_modules = set()
 
-    def visit_Assign(self, node):
-        """Track if 'result' variable is assigned"""
-        for target in node.targets:
-            if isinstance(target, ast.Name) and target.id == 'result':
-                self.has_result = True
-        return node
+#     def visit_Assign(self, node):
+#         """Track if 'result' variable is assigned"""
+#         for target in node.targets:
+#             if isinstance(target, ast.Name) and target.id == 'result':
+#                 self.has_result = True
+#         return node
 
-    def visit_Import(self, node):
-        """Track imported modules"""
-        for alias in node.names:
-            self.imported_modules.add(alias.name)
-        return node
+#     def visit_Import(self, node):
+#         """Track imported modules"""
+#         for alias in node.names:
+#             self.imported_modules.add(alias.name)
+#         return node
 
-    def visit_ImportFrom(self, node):
-        """Track imported modules"""
-        self.imported_modules.add(node.module)
-        return node
+#     def visit_ImportFrom(self, node):
+#         """Track imported modules"""
+#         self.imported_modules.add(node.module)
+#         return node
 
-class AWSResourceQuerier:
+class AWSResourceQuerier(BaseQuerier):
     def __init__(self):
         """Initialize AWS session using environment variables"""
         args = parse_arguments()
@@ -81,76 +84,107 @@ class AWSResourceQuerier:
                 (not args.access_key_id or not args.secret_access_key)):
             logger.warning("AWS credentials not found in environment variables")
 
-    def execute_query(self, code_snippet: str) -> str:
-        """
-        Execute a boto3 code snippet and return the results
+        
+        namespace = {
+            'boto3': boto3,
+            'session': self.session,
+            'result': None,
+            "itemgetter": itemgetter,
+            "result": None
+        }
+        allowed_modules = {
+            "boto3", "operator", "json", "datetime", "pytz",
+            "dateutil", "re", "time", "sys", "base64", "pydantic", "pandas"
+        }
+        super().__init__(allowed_modules, namespace)
 
-        Args:
-            code_snippet (str): Python code using boto3 to query AWS resources
 
-        Returns:
-            str: JSON string containing the query results or error message
-        """
-        try:
-            # Parse the code into an AST
-            tree = ast.parse(code_snippet)
+# class AWSResourceQuerier:
+#     def __init__(self):
+#         """Initialize AWS session using environment variables"""
+#         args = parse_arguments()
+#         self.session = boto3.Session(
+#             aws_access_key_id=args.access_key_id,
+#             aws_secret_access_key=args.secret_access_key,
+#             aws_session_token=args.session_token,
+#             profile_name=args.profile,
+#             region_name=args.region
+#         )
 
-            # Analyze the code
-            executor = CodeExecutor()
-            executor.visit(tree)
+#         if (not args.profile and
+#                 (not args.access_key_id or not args.secret_access_key)):
+#             logger.warning("AWS credentials not found in environment variables")
 
-            # Validate imports
-            allowed_modules = {'boto3', 'operator', 'json', 'datetime', 'pytz', 'dateutil', 're', 'time', 'sys', 'base64'}
-            unauthorized_imports = executor.imported_modules - allowed_modules
-            if unauthorized_imports:
-                return json.dumps({
-                    "error": f"Unauthorized imports: {', '.join(unauthorized_imports)}. "
-                            f"Only {', '.join(allowed_modules)} are allowed."
-                })
+#     def execute_query(self, code_snippet: str) -> str:
+#         """
+#         Execute a boto3 code snippet and return the results
 
-            # Create execution namespace
-            local_ns = {
-                'boto3': boto3,
-                'session': self.session,
-                'result': None,
-                'itemgetter': itemgetter,
-                '__builtins__': {
-                    name: getattr(__builtins__, name)
-                    for name in [
-                        'dict', 'list', 'tuple', 'set', 'str', 'int', 'float', 'bool',
-                        'len', 'max', 'min', 'sorted', 'filter', 'map', 'sum', 'any', 'all',
-                        '__import__', 'hasattr', 'getattr', 'isinstance', 'print'
-                    ]
-                }
-            }
+#         Args:
+#             code_snippet (str): Python code using boto3 to query AWS resources
 
-            # Compile and execute the code
-            compiled_code = compile(tree, '<string>', 'exec')
-            exec(compiled_code, local_ns)
+#         Returns:
+#             str: JSON string containing the query results or error message
+#         """
+#         try:
+#             # Parse the code into an AST
+#             tree = ast.parse(code_snippet)
 
-            # Get the result
-            result = local_ns.get('result')
+#             # Analyze the code
+#             executor = CodeExecutor()
+#             executor.visit(tree)
 
-            # Validate result was set
-            if not executor.has_result:
-                return json.dumps({
-                    "error": "Code must set a 'result' variable with the query output"
-                })
+#             # Validate imports
+#             allowed_modules = {'boto3', 'operator', 'json', 'datetime', 'pytz', 'dateutil', 're', 'time', 'sys', 'base64'}
+#             unauthorized_imports = executor.imported_modules - allowed_modules
+#             if unauthorized_imports:
+#                 return json.dumps({
+#                     "error": f"Unauthorized imports: {', '.join(unauthorized_imports)}. "
+#                             f"Only {', '.join(allowed_modules)} are allowed."
+#                 })
 
-            # Convert result to JSON-serializable format
-            if result is not None:
-                if hasattr(result, 'to_dict'):
-                    result = result.to_dict()
-                return json.dumps(result, default=str)
-            else:
-                return json.dumps({"error": "Result cannot be None"})
+#             # Create execution namespace
+#             local_ns = {
+#                 'boto3': boto3,
+#                 'session': self.session,
+#                 'result': None,
+#                 'itemgetter': itemgetter,
+#                 '__builtins__': {
+#                     name: getattr(__builtins__, name)
+#                     for name in [
+#                         'dict', 'list', 'tuple', 'set', 'str', 'int', 'float', 'bool',
+#                         'len', 'max', 'min', 'sorted', 'filter', 'map', 'sum', 'any', 'all',
+#                         '__import__', 'hasattr', 'getattr', 'isinstance', 'print'
+#                     ]
+#                 }
+#             }
 
-        except SyntaxError as e:
-            logger.error(f"Syntax error in code: {str(e)}")
-            return json.dumps({"error": f"Syntax error: {str(e)}"})
-        except Exception as e:
-            logger.error(f"Error executing query: {str(e)}")
-            return json.dumps({"error": str(e)})
+#             # Compile and execute the code
+#             compiled_code = compile(tree, '<string>', 'exec')
+#             exec(compiled_code, local_ns)
+
+#             # Get the result
+#             result = local_ns.get('result')
+
+#             # Validate result was set
+#             if not executor.has_result:
+#                 return json.dumps({
+#                     "error": "Code must set a 'result' variable with the query output"
+#                 })
+
+#             # Convert result to JSON-serializable format
+#             if result is not None:
+#                 if hasattr(result, 'to_dict'):
+#                     result = result.to_dict()
+#                 return json.dumps(result, default=str)
+#             else:
+#                 return json.dumps({"error": "Result cannot be None"})
+
+#         except SyntaxError as e:
+#             logger.error(f"Syntax error in code: {str(e)}")
+#             return json.dumps({"error": f"Syntax error: {str(e)}"})
+#         except Exception as e:
+#             logger.error(f"Error executing query: {str(e)}")
+#             return json.dumps({"error": str(e)})
 
 async def main():
     """Run the AWS Resources MCP server."""
