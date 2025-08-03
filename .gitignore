@@ -43,3 +43,5 @@ htmlcov/
 *.pid
 *.seed
 *.pid.lock
+
+claude_config.json.bkp
