@@ -1,0 +1,17 @@
+{
+    "mcpServers": {
+    "aws-resources": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "AWS_PROFILE=default",
+        "-v",
+        "/Users/bantwal/.aws:/root/.aws",
+        "mcp-server-aws-resources:latest"
+      ]
+    }
+  }
+}        
