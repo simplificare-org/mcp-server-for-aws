@@ -15,5 +15,7 @@ dependencies = [
      "syntropaibox>=0.1.11"
 ]
 
+
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/mcp_server_aws_resources"]
