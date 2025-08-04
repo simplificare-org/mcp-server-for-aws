@@ -18,29 +18,29 @@ from syntropaibox.mcp.base import BaseQuerier, DEFAULT_ALLOWED_MODULES, BaseSess
 logger = logging.getLogger('mcp_aws_resources_server')
 
 
-def parse_arguments() -> argparse.Namespace:
-    """Use argparse to allow values to be set as CLI switches
-    or environment variables
+# def parse_arguments() -> argparse.Namespace:
+#     """Use argparse to allow values to be set as CLI switches
+#     or environment variables
 
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--access-key-id', default=os.environ.get('AWS_ACCESS_KEY_ID')
-    )
-    parser.add_argument(
-        '--secret-access-key', default=os.environ.get('AWS_SECRET_ACCESS_KEY')
-    )
-    parser.add_argument(
-        '--session-token', default=os.environ.get('AWS_SESSION_TOKEN')
-    )
-    parser.add_argument(
-        '--profile', default=os.environ.get('AWS_PROFILE')
-    )
-    parser.add_argument(
-        '--region',
-        default=os.environ.get('AWS_DEFAULT_REGION', 'us-east-1')
-    )
-    return parser.parse_args()
+#     """
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument(
+#         '--access-key-id', default=os.environ.get('AWS_ACCESS_KEY_ID')
+#     )
+#     parser.add_argument(
+#         '--secret-access-key', default=os.environ.get('AWS_SECRET_ACCESS_KEY')
+#     )
+#     parser.add_argument(
+#         '--session-token', default=os.environ.get('AWS_SESSION_TOKEN')
+#     )
+#     parser.add_argument(
+#         '--profile', default=os.environ.get('AWS_PROFILE')
+#     )
+#     parser.add_argument(
+#         '--region',
+#         default=os.environ.get('AWS_DEFAULT_REGION', 'us-east-1')
+#     )
+#     return parser.parse_args()
 
 
 class AWSSession(BaseSession):
